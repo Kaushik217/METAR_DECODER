@@ -1,20 +1,18 @@
 # Use the official Maven image to build the application
-   FROM maven:latest AS build
-
+FROM maven:latest AS build
 
 # Set the working directory
 WORKDIR /app
 
 # Copy the pom.xml and the source code
-COPY pom.xml .
-COPY . .
+COPY METAR_DECODER/pom.xml .
+COPY METAR_DECODER .
 
 # Build the application
 RUN mvn clean package
 
 # Use a smaller image for the final application
-   FROM openjdk:23-jdk-slim
-
+FROM openjdk:23-jdk-slim
 
 # Set the working directory
 WORKDIR /app
