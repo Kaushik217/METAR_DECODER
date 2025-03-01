@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: metar-decoder
+    env: docker
+    branch: main
+    dockerfilePath: METAR_DECODER/Dockerfile
+    port: 8084 # Change this to your application's port if it's different
