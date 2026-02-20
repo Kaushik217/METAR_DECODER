@@ -1,11 +1,13 @@
 package com.metar.decoder.Service;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -13,43 +15,53 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class JsonFileManager {
-	
-	private final ObjectMapper objectMapper;
 
-	public JsonFileManager(ObjectMapper objectMapper) {
-		super();
-		this.objectMapper = objectMapper;
-	}
-	
-	//Read JSON data from a file
-	public String readJsonDataFromFile(String filePath) throws IOException{
-		if(Files.exists(Paths.get(filePath))) {
-			return new String(Files.readAllBytes(Paths.get(filePath)));
-		}
-		else {
-			throw new IOException("File not found: " + filePath);
-		}
-	}
-	
-	//Write JSON data to a file
-	public void WriteJsonDataToFile(String filePath, String jsonData) throws IOException{
-		Files.write(Paths.get(filePath), jsonData.getBytes());
-	}
-	
-	//Deserialize JSON string to a list
-	public List<String> deserializeJsonToList(String jsonData) throws IOException{
-		return getObjectMapper().readValue(jsonData, new TypeReference<List<String>>() {});
-	}
-	
-	//clear the output file before every build
-	public void clearFile(String filePath) throws IOException {
-        Path path = Paths.get(filePath);
-        if (Files.exists(path)) {
-            Files.writeString(path, ""); // Clear the file by writing an empty string
+    private final ObjectMapper objectMapper;
+
+    public JsonFileManager(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    // ✅ Read JSON from resources (works in Render)
+    public String readJsonDataFromFile(String filePath) throws IOException {
+
+        ClassPathResource resource = new ClassPathResource(filePath);
+
+        if (!resource.exists()) {
+            throw new IOException("File not found in classpath: " + filePath);
+        }
+
+        try (InputStream inputStream = resource.getInputStream()) {
+            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
-	public ObjectMapper getObjectMapper() {
-		return objectMapper;
-	}
+    // ✅ Write JSON to TEMP directory (Render safe)
+    public void writeJsonDataToFile(String filePath, String jsonData) throws IOException {
+
+        String tempDir = System.getProperty("java.io.tmpdir");
+        File file = new File(tempDir + "/" + filePath);
+
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(jsonData);
+        }
+    }
+
+    // Deserialize JSON string to a list
+    public List<String> deserializeJsonToList(String jsonData) throws IOException {
+        return objectMapper.readValue(jsonData, new TypeReference<List<String>>() {});
+    }
+
+    // Clear output file (temp dir)
+    public void clearFile(String filePath) throws IOException {
+
+        String tempDir = System.getProperty("java.io.tmpdir");
+        File file = new File(tempDir + "/" + filePath);
+
+        if (file.exists()) {
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.write("");
+            }
+        }
+    }
 }
