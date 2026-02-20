@@ -34,6 +34,8 @@ public class WeatherController {
 
 	private final JsonFileManager jsonFileManager;
 	private final WeatherDecoderService weatherDecoderService;
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	public WeatherController(JsonFileManager jsonFileManager, WeatherDecoderService weatherDecoderService) {
 		super();
@@ -66,8 +68,8 @@ public class WeatherController {
 			List<WeatherData> decodedWeatherData = weatherDecoderService.Decode(encodedForecasts);
 
 			// serialize and write the output data into another json file.
-			String outputJson = jsonFileManager.getObjectMapper().writeValueAsString(decodedWeatherData);
-			jsonFileManager.WriteJsonDataToFile(outputFilePath, outputJson);
+			String outputJson = objectMapper.writeValueAsString(decodedWeatherData);
+			jsonFileManager.writeJsonDataToFile(outputFilePath, outputJson);
 
 			return ResponseEntity.ok(decodedWeatherData);
 
@@ -339,3 +341,4 @@ public class WeatherController {
 		}
 	}
 }
+
