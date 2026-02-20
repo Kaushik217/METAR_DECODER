@@ -11,8 +11,8 @@ COPY METAR_DECODER .
 # Build the application
 RUN mvn clean package
 
-# Use a smaller image for the final application
-FROM openjdk:17-jdk-slim
+# Use Eclipse Temurin (officially supported Java image)
+FROM eclipse-temurin:17-jdk-alpine
 
 # Set the working directory
 WORKDIR /app
